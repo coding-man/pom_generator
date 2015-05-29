@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project name="static-webapp" default="all" basedir=".">
+    <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+
+    <property file="${basedir}/build.properties" />
+    <property name="src.dir" location="src"/>
+    <property name="build.dir" location="build"/>
+    <property name="dist.dir" location="dist"/>
+
+    <var name="groupId" value="${default.groupId}" />
+    <var name="artifactId" value="${default.artifactId}" />
+    <var name="version" value="${default.version}" />    
+    <var name="package" value="${default.package}" />  
+
+    <filterset id="project.filterset" begintoken="@" endtoken="@">
+        <propertyset>
+            <propertyref name="groupId"/>
+            <propertyref name="artifactId"/>
+            <propertyref name="version"/>
+            <propertyref name="package"/>
+        </propertyset>
+    </filterset>
+
+    <target name="clean">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <target name="init" depends="clean">
+        <mkdir dir="${build.dir}/src/main/java"/>
+        <mkdir dir="${build.dir}/src/main/resources"/>
+        <mkdir dir="${build.dir}/src/test/java"/>
+        <mkdir dir="${build.dir}/src/test/resources"/>        
+    </target>
+
+    <target name="copy_and_filter_files" depends="init">
+        <copy todir="${build.dir}" includeemptydirs="false" encoding="UTF-8" outputencoding="UTF-8">
+            <fileset dir="${src.dir}" excludes="**/@package@/**/*"  />
+            <filterset refid="project.filterset" />
+        </copy>
+
+        <propertyregex property="new_package_name"
+                       input="${package}"
+                       regexp="\."
+                       replace="\\${file.separator}"
+                       global="true" />
+        <copy todir="${build.dir}" includeemptydirs="false" encoding="UTF-8" outputencoding="UTF-8">
+            <fileset dir="${src.dir}" includes="**/@package@/**/*" />
+            <mapper>
+                <chainedmapper>
+                    <filtermapper>
+                        <replacestring from="@package@" to="${new_package_name}"/>
+                    </filtermapper>
+                </chainedmapper>                                
+            </mapper>       
+            <filterset refid="project.filterset" />
+        </copy>
+    </target>    
+   
+    <target name="dist" depends="copy_and_filter_files">
+        <copy todir="${dist.dir}/${artifactId}" includeemptydirs="true">
+            <fileset dir="${build.dir}"/>
+        </copy>        
+    </target>    
+
+    <target name="customize_build_properties">
+        <echo>groupId=${groupId}</echo>
+        <echo>artifactId=${artifactId}</echo>
+        <echo>version=${version}</echo>   
+        <echo>package=${package}</echo>          
+        <input message="是否要修改上面的属性值?" validargs="y,n" addproperty="do.change" defaultvalue="n" />
+        
+        <if>
+            <equals arg1="${do.change}" arg2="y" />
+            <then>
+                <input message="groupId:" addproperty="groupId.new" defaultvalue="${groupId}" />
+                <var name="groupId" value="${groupId.new}" />
+
+                <input message="artifactId:" addproperty="artifactId.new" defaultvalue="${artifactId}" />
+                <var name="artifactId" value="${artifactId.new}" />
+
+                <input message="version:" addproperty="version.new" defaultvalue="${version}" />            
+                <var name="version" value="${version.new}" /> 
+
+                <input message="package:" addproperty="package.new" defaultvalue="${package}" />            
+                <var name="package" value="${package.new}" />                 
+            </then>
+        </if>  
+    </target>
+
+    <target name="all" depends="clean, customize_build_properties, dist"/>    
+</project>
