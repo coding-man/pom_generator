@@ -8,19 +8,10 @@
     <property name="build.dir" location="build"/>
     <property name="dist.dir" location="dist"/>
 
-    <var name="groupId" value="${default.groupId}" />
-    <var name="artifactId" value="${default.artifactId}" />
-    <var name="version" value="${default.version}" />    
-    <var name="package" value="${default.package}" />  
-
-    <filterset id="project.filterset" begintoken="@" endtoken="@">
-        <propertyset>
-            <propertyref name="groupId"/>
-            <propertyref name="artifactId"/>
-            <propertyref name="version"/>
-            <propertyref name="package"/>
-        </propertyset>
-    </filterset>
+    <property name="groupId" value="${default.groupId}" />
+    <property name="artifactId" value="${default.artifactId}" />
+    <property name="version" value="${default.version}" />
+    <property name="package" value="${default.package}" />
 
     <target name="clean">
         <delete dir="${build.dir}"/>
@@ -37,7 +28,14 @@
     <target name="copy_and_filter_files" depends="init">
         <copy todir="${build.dir}" includeemptydirs="false" encoding="UTF-8" outputencoding="UTF-8">
             <fileset dir="${src.dir}" excludes="**/@package@/**/*"  />
-            <filterset refid="project.filterset" />
+            <filterset  begintoken="@" endtoken="@">
+                <propertyset>
+                    <propertyref name="groupId"/>
+                    <propertyref name="artifactId"/>
+                    <propertyref name="version"/>
+                    <propertyref name="package"/>
+                </propertyset>
+            </filterset>
         </copy>
 
         <propertyregex property="new_package_name"
@@ -54,7 +52,14 @@
                     </filtermapper>
                 </chainedmapper>                                
             </mapper>       
-            <filterset refid="project.filterset" />
+            <filterset  begintoken="@" endtoken="@">
+                <propertyset>
+                    <propertyref name="groupId"/>
+                    <propertyref name="artifactId"/>
+                    <propertyref name="version"/>
+                    <propertyref name="package"/>
+                </propertyset>
+            </filterset>
         </copy>
     </target>    
    
@@ -75,16 +80,20 @@
             <equals arg1="${do.change}" arg2="y" />
             <then>
                 <input message="groupId:" addproperty="groupId.new" defaultvalue="${groupId}" />
-                <var name="groupId" value="${groupId.new}" />
+                <var name="groupId" unset="true"/>
+                <property name="groupId" value="${groupId.new}"/>
 
                 <input message="artifactId:" addproperty="artifactId.new" defaultvalue="${artifactId}" />
-                <var name="artifactId" value="${artifactId.new}" />
+                <var name="artifactId" unset="true"/>
+                <property name="artifactId" value="${artifactId.new}"/>
 
                 <input message="version:" addproperty="version.new" defaultvalue="${version}" />            
-                <var name="version" value="${version.new}" /> 
+                <var name="version" unset="true"/>
+                <property name="version" value="${version.new}"/>
 
                 <input message="package:" addproperty="package.new" defaultvalue="${package}" />            
-                <var name="package" value="${package.new}" />                 
+                <var name="package" unset="true"/>
+                <property name="package" value="${package.new}"/>
             </then>
         </if>  
     </target>
